@@ -1,0 +1,11 @@
+node_modules/
+package-lock.json
+.test-profile/
+.debug-profile/
+.superpowers/
+.DS_Store
+*.log
+.env
+.env.*
+.idea/
+.vscode/

@@ -1,0 +1,20 @@
+{
+  "name": "github-tests-filter-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension to filter test files from GitHub PR file views",
+  "private": true,
+  "author": "Paweł Buchman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pbuchman/github-tests-filter-extension.git"
+  },
+  "scripts": {
+    "generate-icons": "node scripts/generate-icons.mjs",
+    "test:e2e": "node scripts/test-extension.mjs"
+  },
+  "devDependencies": {
+    "canvas": "^3.2.1",
+    "playwright": "^1.58.2"
+  }
+}
