@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Chrome extension to filter test files from GitHub PR file views",
   "private": true,
-  "author": "Paweł Buchman",
+  "author": "Frontier LLM (unsupervised)",
   "license": "MIT",
   "repository": {
     "type": "git",
