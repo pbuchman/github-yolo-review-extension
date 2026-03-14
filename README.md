@@ -21,6 +21,9 @@ And now you — the human reviewer — are expected to *look at them*. Scroll pa
 
 **No more.**
 
+<!-- TODO: Replace with actual GitHub user-attachments URL after uploading demo/github-yolo-extension.mov -->
+> **Demo video coming soon** — drag `demo/github-yolo-extension.mov` into a GitHub issue to generate the embed URL.
+
 GitHub YOLO Review adds the one filter GitHub was too afraid to ship: **hide the tests.** One click and they vanish. Gone. The diff shrinks. The file tree breathes. You can finally focus on what matters — approving the PR and getting back to prompting.
 
 Our rigorous research shows this saves between **32% and 34%** of code review time*, which can be reinvested into generating even more code. The cycle of productivity is now complete.
