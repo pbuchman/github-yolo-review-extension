@@ -21,6 +21,8 @@ And now you — the human reviewer — are expected to *look at them*. Scroll pa
 
 **No more.**
 
+https://github.com/user-attachments/assets/fa35296b-23a4-4b7b-bb5b-a82ef7c9d80e
+
 GitHub YOLO Review adds the one filter GitHub was too afraid to ship: **hide the tests.** One click and they vanish. Gone. The diff shrinks. The file tree breathes. You can finally focus on what matters — approving the PR and getting back to prompting.
 
 Our rigorous research shows this saves between **32% and 34%** of code review time*, which can be reinvested into generating even more code. The cycle of productivity is now complete.
