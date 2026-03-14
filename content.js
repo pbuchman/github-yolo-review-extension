@@ -1,10 +1,37 @@
 (function () {
   'use strict';
 
+  /** Default test-file suffixes (matches original hardcoded behavior). */
+  const DEFAULT_PATTERNS = [
+    { suffix: '.test.ts', enabled: true },
+    { suffix: '.test.tsx', enabled: true },
+  ];
+
+  /** Active suffix patterns loaded from storage. */
+  let activePatterns = [];
+
+  /** Compiled regex from enabled patterns, or null if none enabled. */
+  let testRegex = null;
+
   /**
-   * Pattern matching test files. Matches *.test.ts and *.test.tsx (case insensitive).
+   * Build a RegExp that matches file paths ending with any enabled suffix.
+   * Returns null if no patterns are enabled.
    */
-  const TEST_PATTERN = /\.test\.tsx?$/i;
+  function buildTestRegex(patterns) {
+    const enabled = patterns.filter((p) => p.enabled);
+    if (enabled.length === 0) return null;
+    const escaped = enabled.map((p) =>
+      p.suffix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    );
+    return new RegExp('(' + escaped.join('|') + ')$', 'i');
+  }
+
+  /** Build a human-readable label like "Tests (.test.ts, .test.tsx)" from enabled patterns. */
+  function buildPatternLabel() {
+    const enabled = activePatterns.filter((p) => p.enabled);
+    if (enabled.length === 0) return 'Tests (none)';
+    return 'Tests (' + enabled.map((p) => p.suffix).join(', ') + ')';
+  }
 
   /** Attribute used to mark DOM elements injected by this extension. */
   const INJECTED_ATTR = 'data-tests-filter-injected';
@@ -21,7 +48,7 @@
   // ─── File detection ───────────────────────────────────────────
 
   function isTestFile(filePath) {
-    return TEST_PATTERN.test(filePath);
+    return testRegex ? testRegex.test(filePath) : false;
   }
 
   /**
@@ -69,7 +96,7 @@
     if (!extensionEnabled) return;
     const hide = testsHidden;
 
-    // Diff panels: <copilot-diff-entry data-file-path="...">
+    // Diff panels: <copilot-diff-entry data-file-path="..."> (classic view)
     for (const entry of document.querySelectorAll(
       'copilot-diff-entry[data-file-path]'
     )) {
@@ -78,7 +105,7 @@
       }
     }
 
-    // Fallback diff divs not wrapped in copilot-diff-entry
+    // Fallback diff divs not wrapped in copilot-diff-entry (classic view)
     for (const div of document.querySelectorAll(
       'div.js-file[data-tagsearch-path]'
     )) {
@@ -88,9 +115,24 @@
       }
     }
 
+    // Primer diff panels: map tree items to diff panels via #diff-HASH links
+    for (const item of document.querySelectorAll('li[role="treeitem"]')) {
+      if (item.getAttribute('data-tree-entry-type') === 'directory') continue;
+      const link = item.querySelector('a[href*="#diff-"]');
+      if (!link) continue;
+      const path = link.getAttribute('title') || link.textContent.trim();
+      if (!isTestFile(path)) continue;
+      const hash = link.getAttribute('href')?.split('#diff-')[1];
+      if (!hash) continue;
+      const panel = document.getElementById('diff-' + hash);
+      if (panel) panel.style.display = hide ? 'none' : '';
+    }
+
     // File tree items
     for (const item of document.querySelectorAll('li[role="treeitem"]')) {
       if (item.getAttribute('data-tree-entry-type') === 'directory') continue;
+      // Primer directories contain a child ul[role="group"]
+      if (item.querySelector(':scope > ul[role="group"]')) continue;
       const path = getFilePathFromTreeItem(item);
       if (path && isTestFile(path)) {
         item.style.display = hide ? 'none' : '';
@@ -107,10 +149,12 @@
    * is computed after all children are resolved.
    */
   function collapseEmptyDirectories() {
+    // Match directories: items with a child group list (works for both classic and Primer views)
     const dirs = Array.from(
-      document.querySelectorAll(
-        'li[role="treeitem"][data-tree-entry-type="directory"]'
-      )
+      document.querySelectorAll('li[role="treeitem"]')
+    ).filter((li) =>
+      li.getAttribute('data-tree-entry-type') === 'directory' ||
+      li.querySelector(':scope > ul[role="group"]')
     );
 
     dirs.sort((a, b) => {
@@ -152,8 +196,23 @@
       }
     }
 
+    // Primer diff panels: restore via tree-to-diff mapping
+    for (const treeItem of document.querySelectorAll('li[role="treeitem"]')) {
+      if (treeItem.getAttribute('data-tree-entry-type') === 'directory') continue;
+      const link = treeItem.querySelector('a[href*="#diff-"]');
+      if (!link) continue;
+      const fp = link.getAttribute('title') || link.textContent.trim();
+      if (!isTestFile(fp)) continue;
+      const hash = link.getAttribute('href')?.split('#diff-')[1];
+      if (!hash) continue;
+      const panel = document.getElementById('diff-' + hash);
+      if (panel) panel.style.display = '';
+    }
+
     for (const item of document.querySelectorAll('li[role="treeitem"]')) {
-      if (item.getAttribute('data-tree-entry-type') === 'directory') {
+      const isDir = item.getAttribute('data-tree-entry-type') === 'directory' ||
+        item.querySelector(':scope > ul[role="group"]');
+      if (isDir) {
         if (item.style.display === 'none') item.style.display = '';
         continue;
       }
@@ -187,6 +246,27 @@
       span.textContent = countTestFiles();
     }
   }
+
+  // ─── Document-level capture handler for injected toggles ──────
+  // Registered on `document` in the capture phase so it fires BEFORE
+  // React 18's capture-phase handler on its root container.
+  document.addEventListener('click', (e) => {
+    const item = e.target.closest(`[${INJECTED_ATTR}]`);
+    if (!item) return;
+    // Skip non-interactive elements (e.g. separator)
+    const cb = item.querySelector('.tests-filter-checkbox');
+    if (!cb) return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    const newChecked = !cb.checked;
+    cb.checked = newChecked;
+    item.setAttribute('aria-checked', String(newChecked));
+    const svg = item.querySelector('svg');
+    if (svg) svg.style.visibility = newChecked ? 'visible' : 'hidden';
+    onTestsCheckboxChange(newChecked);
+  }, true);
 
   // ─── UI injection: Diffbar dropdown ───────────────────────────
 
@@ -253,7 +333,7 @@
     for (const span of spans) {
       const text = span.textContent?.trim();
       if (text && /^\.\w+$/.test(text)) {
-        span.textContent = 'Tests (.test.ts, .test.tsx)';
+        span.textContent = buildPatternLabel();
       }
       if (text && /^\(?\d+\)?$/.test(text)) {
         span.textContent = String(count);
@@ -272,18 +352,6 @@
     cb.checked = !testsHidden;
     cb.style.display = 'none';
     item.prepend(cb);
-
-    // Click handler — use capture + stopImmediatePropagation to prevent
-    // React's delegated handlers from processing this as a native toggle
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      const newChecked = !cb.checked;
-      cb.checked = newChecked;
-      item.setAttribute('aria-checked', String(newChecked));
-      if (svg) svg.style.visibility = newChecked ? 'visible' : 'hidden';
-      onTestsCheckboxChange(newChecked);
-    }, true);
 
     // Separator
     const sep = document.createElement('li');
@@ -322,7 +390,7 @@
     countSpan.className = 'tests-filter-count text-small color-fg-muted float-right';
     countSpan.textContent = count;
 
-    label.append(checkbox, ' Tests (.test.ts, .test.tsx) ', countSpan);
+    label.append(checkbox, ' ' + buildPatternLabel() + ' ', countSpan);
     lastExtLabel.after(sep, label);
   }
 
@@ -373,8 +441,9 @@
         if (filterBtn.getAttribute('aria-expanded') === 'true' && extensionEnabled) {
           // Primer renders dropdown async — retry with delays
           injectDiffbarToggle();
-          setTimeout(injectDiffbarToggle, 150);
-          setTimeout(injectDiffbarToggle, 500);
+          setTimeout(injectDiffbarToggle, 300);
+          setTimeout(injectDiffbarToggle, 1000);
+          setTimeout(injectDiffbarToggle, 2000);
         }
       });
       btnObserver.observe(filterBtn, { attributes: true, attributeFilter: ['aria-expanded'] });
@@ -392,14 +461,20 @@
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
           if (
             node.tagName === 'COPILOT-DIFF-ENTRY' ||
-            node.querySelector?.('copilot-diff-entry')
+            node.querySelector?.('copilot-diff-entry') ||
+            node.querySelector?.('button[data-file-path]')
           ) {
             reapply = true;
           }
           if (
             node.classList?.contains('SelectMenu') ||
             node.matches?.('.js-file-filter-form') ||
-            node.querySelector?.('.js-file-filter-form') ||
+            node.querySelector?.('.js-file-filter-form')
+          ) {
+            injectDiffbarToggle();
+          }
+          if (
+            node.matches?.('ul[aria-label="File extensions"]') ||
             node.querySelector?.('ul[aria-label="File extensions"]')
           ) {
             injectDiffbarToggle();
@@ -441,6 +516,14 @@
       testsHidden = !!changes.testsHidden.newValue;
       applyFilter();
     }
+    if (changes.testPatterns) {
+      activePatterns = changes.testPatterns.newValue || DEFAULT_PATTERNS;
+      testRegex = buildTestRegex(activePatterns);
+      if (extensionEnabled) {
+        cleanup();
+        init();
+      }
+    }
   });
 
   // GitHub uses Turbo for SPA navigation — re-initialize when the page changes.
@@ -452,9 +535,11 @@
 
   // ─── Startup ──────────────────────────────────────────────────
 
-  chrome.storage.local.get(['testsFilterEnabled', 'testsHidden'], (data) => {
+  chrome.storage.local.get(['testsFilterEnabled', 'testsHidden', 'testPatterns'], (data) => {
     extensionEnabled = !!data.testsFilterEnabled;
     testsHidden = data.testsHidden !== undefined ? data.testsHidden : true;
+    activePatterns = data.testPatterns || DEFAULT_PATTERNS;
+    testRegex = buildTestRegex(activePatterns);
 
     if (!extensionEnabled) return;
     if (document.readyState === 'complete') {

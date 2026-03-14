@@ -9,9 +9,19 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const EXTENSION_PATH = path.resolve(__dirname, '..');
 const PR_URL = 'https://github.com/pbuchman/intexuraos/pull/1161/files';
+const SCREENSHOTS_DIR = path.join(__dirname, '..', 'screenshots-classic');
+import { mkdirSync } from 'fs';
+try { mkdirSync(SCREENSHOTS_DIR, { recursive: true }); } catch {}
+let stepNum = 0;
+async function screenshot(pg, name) {
+  stepNum++;
+  const file = path.join(SCREENSHOTS_DIR, `${stepNum}-${name}.png`);
+  await pg.screenshot({ path: file, fullPage: false });
+  console.log(`  📸 ${file}`);
+}
 
 (async () => {
-  console.log('=== GitHub Tests Filter Extension — Local E2E Test ===\n');
+  console.log('=== GitHub YOLO Review Extension — Local E2E Test ===\n');
 
   const userDataDir = path.join(__dirname, '..', '.test-profile');
 
@@ -74,6 +84,7 @@ const PR_URL = 'https://github.com/pbuchman/intexuraos/pull/1161/files';
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(3000);
   console.log('  Page loaded:', page.url());
+  await screenshot(page, 'page-loaded');
 
   // 4. Check diff entries
   console.log('\nStep 4: Checking diff entries...');
@@ -147,6 +158,7 @@ const PR_URL = 'https://github.com/pbuchman/intexuraos/pull/1161/files';
   console.log('  HTML:\n', dropdownDebug.containerHTML);
 
   // 6. Check injected toggle exists
+  await screenshot(page, 'after-filter');
   console.log('\nStep 6: Checking injected toggle...');
   const toggleInfo = await page.evaluate(() => {
     const label = document.querySelector('label[data-tests-filter-injected]');
@@ -165,6 +177,7 @@ const PR_URL = 'https://github.com/pbuchman/intexuraos/pull/1161/files';
 
   if (toggleInfo.found) {
     console.log('  Toggle found:', JSON.stringify(toggleInfo, null, 4));
+    await screenshot(page, 'dropdown-open');
     check('Toggle text contains "Tests"', toggleInfo.text?.includes('Tests'));
     check('Toggle text contains ".test.ts"', toggleInfo.text?.includes('.test.ts'));
     check('Toggle has checkbox', toggleInfo.hasCheckbox);
@@ -220,6 +233,7 @@ const PR_URL = 'https://github.com/pbuchman/intexuraos/pull/1161/files';
 
     console.log(`  Test files still hidden: ${afterToggle.hiddenCount}`);
     check('After toggle click, test files visible', afterToggle.hiddenCount === 0);
+    await screenshot(page, 'after-toggle-click');
   }
 
   // Summary
@@ -242,7 +256,7 @@ async function getExtensionId(context) {
     if (!list?.shadowRoot) return null;
     for (const ext of list.shadowRoot.querySelectorAll('extensions-item')) {
       const name = ext.shadowRoot?.querySelector('#name');
-      if (name?.textContent?.includes('GitHub Tests Filter')) {
+      if (name?.textContent?.includes('GitHub YOLO Review')) {
         return ext.getAttribute('id');
       }
     }

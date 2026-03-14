@@ -1,5 +1,5 @@
 {
-  "name": "github-tests-filter-extension",
+  "name": "github-yolo-review-extension",
   "version": "1.0.0",
   "description": "Chrome extension to filter test files from GitHub PR file views",
   "private": true,
@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pbuchman/github-tests-filter-extension.git"
+    "url": "https://github.com/pbuchman/github-yolo-review-extension.git"
   },
   "scripts": {
     "generate-icons": "node scripts/generate-icons.mjs",

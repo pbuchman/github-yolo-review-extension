@@ -14,49 +14,56 @@ mkdirSync(iconsDir, { recursive: true });
 
 const sizes = [16, 48, 128];
 
-for (const size of sizes) {
-  const canvas = createCanvas(size, size);
-  const ctx = canvas.getContext('2d');
-  const s = size; // shorthand
+const variants = [
+  { suffix: '',        funnelColor: '#656d76' }, // inactive (grey)
+  { suffix: '-active',  funnelColor: '#1f883d' }, // active (green)
+];
 
-  // Background (transparent)
-  ctx.clearRect(0, 0, s, s);
+for (const { suffix, funnelColor } of variants) {
+  for (const size of sizes) {
+    const canvas = createCanvas(size, size);
+    const ctx = canvas.getContext('2d');
+    const s = size; // shorthand
 
-  // Draw funnel shape
-  ctx.fillStyle = '#656d76';
-  ctx.strokeStyle = '#656d76';
-  ctx.lineWidth = Math.max(1, s * 0.06);
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+    // Background (transparent)
+    ctx.clearRect(0, 0, s, s);
 
-  const pad = s * 0.1;
-  const topY = s * 0.2;
-  const midY = s * 0.5;
-  const botY = s * 0.8;
-  const topLeft = pad;
-  const topRight = s - pad;
-  const neckLeft = s * 0.38;
-  const neckRight = s * 0.62;
+    // Draw funnel shape
+    ctx.fillStyle = funnelColor;
+    ctx.strokeStyle = funnelColor;
+    ctx.lineWidth = Math.max(1, s * 0.06);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-  ctx.beginPath();
-  ctx.moveTo(topLeft, topY);
-  ctx.lineTo(topRight, topY);
-  ctx.lineTo(neckRight, midY);
-  ctx.lineTo(neckRight, botY);
-  ctx.lineTo(neckLeft, botY);
-  ctx.lineTo(neckLeft, midY);
-  ctx.closePath();
-  ctx.fill();
+    const pad = s * 0.1;
+    const topY = s * 0.2;
+    const midY = s * 0.5;
+    const botY = s * 0.8;
+    const topLeft = pad;
+    const topRight = s - pad;
+    const neckLeft = s * 0.38;
+    const neckRight = s * 0.62;
 
-  // Draw "T" letter overlay in white
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${Math.round(s * 0.32)}px -apple-system, Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('T', s / 2, s * 0.52);
+    ctx.beginPath();
+    ctx.moveTo(topLeft, topY);
+    ctx.lineTo(topRight, topY);
+    ctx.lineTo(neckRight, midY);
+    ctx.lineTo(neckRight, botY);
+    ctx.lineTo(neckLeft, botY);
+    ctx.lineTo(neckLeft, midY);
+    ctx.closePath();
+    ctx.fill();
 
-  const buffer = canvas.toBuffer('image/png');
-  const outPath = path.join(iconsDir, `icon-${size}.png`);
-  writeFileSync(outPath, buffer);
-  console.log(`Created ${outPath}`);
+    // Draw "T" letter overlay in white
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.round(s * 0.32)}px -apple-system, Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('T', s / 2, s * 0.52);
+
+    const buffer = canvas.toBuffer('image/png');
+    const outPath = path.join(iconsDir, `icon${suffix}-${size}.png`);
+    writeFileSync(outPath, buffer);
+    console.log(`Created ${outPath}`);
+  }
 }

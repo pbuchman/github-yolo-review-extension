@@ -77,12 +77,82 @@
       padding-top: 8px;
       border-top: 1px solid #d1d9e0;
     }
+    .patterns-section {
+      display: none;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #d1d9e0;
+    }
+    .patterns-section.visible {
+      display: block;
+    }
+    .patterns-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1f2328;
+      margin-bottom: 8px;
+    }
+    .pattern-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      font-size: 13px;
+    }
+    .pattern-row input[type="checkbox"] {
+      margin: 0;
+      cursor: pointer;
+    }
+    .pattern-suffix {
+      flex: 1;
+      color: #1f2328;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    .pattern-remove {
+      background: none;
+      border: none;
+      color: #cf222e;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+      opacity: 0.6;
+    }
+    .pattern-remove:hover {
+      opacity: 1;
+    }
+    .add-pattern-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .add-pattern-row input {
+      flex: 1;
+      font-size: 12px;
+      padding: 3px 6px;
+      border: 1px solid #d1d9e0;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+    .add-pattern-row button {
+      font-size: 12px;
+      padding: 3px 10px;
+      background: #1f883d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .add-pattern-row button:hover {
+      background: #1a7f37;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <img src="icons/icon-48.png" alt="">
-    <h1>GitHub Tests Filter</h1>
+    <h1>GitHub YOLO Review</h1>
   </div>
   <div class="toggle-row">
     <span class="toggle-label">Extension enabled</span>
@@ -90,6 +160,14 @@
       <input type="checkbox" id="toggle">
       <span class="slider"></span>
     </label>
+  </div>
+  <div class="patterns-section" id="patterns-section">
+    <div class="patterns-label">File patterns to filter:</div>
+    <div id="pattern-list"></div>
+    <div class="add-pattern-row">
+      <input type="text" id="new-pattern" placeholder=".spec.ts">
+      <button id="add-pattern">Add</button>
+    </div>
   </div>
   <div class="status" id="status">Disabled</div>
   <script src="popup.js"></script>
