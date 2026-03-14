@@ -1,5 +1,16 @@
 # GitHub YOLO Review
 
+![Chrome Extension](https://img.shields.io/badge/Chrome-Extension%20V3-4285F4?logo=googlechrome&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES2024-F7DF1E?logo=javascript&logoColor=black)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Built by](https://img.shields.io/badge/Built%20by-Frontier%20LLM-blueviolet?logo=anthropic&logoColor=white)
+![Code reviewed](https://img.shields.io/badge/Code%20reviewed-No-red)
+![Tests](https://img.shields.io/badge/Tests-Hidden-orange)
+![Bugs found](https://img.shields.io/badge/Bugs%20found-0%20(didn't%20look)-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-Who%20cares-lightgrey)
+![Time saved](https://img.shields.io/badge/Review%20time%20saved-32--34%25-blue)
+![Methodology](https://img.shields.io/badge/Methodology-Vibes-ff69b4)
+
 > The missing GitHub feature for the AI-generated code era.
 
 Let's face it. It's 2026. Your pull requests are written by frontier LLMs. The code is *immaculate*. Statistically flawless. Peer-reviewed by a model that has read every Stack Overflow post ever written and still chose to mass-produce test files nobody asked for.
